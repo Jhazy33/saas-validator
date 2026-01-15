@@ -1,0 +1,78 @@
+You are a conversion optimization expert. Generate a landing page outline for:
+
+**Product**: {IDEA_NAME}
+
+**Key Insights**:
+{INSIGHTS}
+
+**Requirements**:
+1. Hero section:
+   - Bold headline (under 10 words)
+   - Compelling subheadline (value proposition)
+   - Single CTA button ("Get Early Access" or "Join Waitlist")
+   - Social proof badge ("Join 500+ companies")
+
+2. Problem section:
+   - 3 specific pain points (bullet format)
+   - Each pain point should be relatable and emotional
+   - Format: "You're losing X to Y"
+
+3. Solution section:
+   - 2-3 key benefits (not features!)
+   - Include specific numbers (save 20+ hours, 99% accuracy)
+   - Social proof: "Trusted by 500+ companies"
+
+4. Features section:
+   - 4-6 features with icons
+   - Each feature: benefit + technical detail
+   - Include: speed, accuracy, ease of use, integrations
+
+5. Social proof section:
+   - 2-3 testimonials (real or placeholder)
+   - Format: Quote + Name + Company
+   - Include specific results
+
+6. Final CTA section:
+   - Strong value restatement
+   - Urgency ("Limited to first 100 users")
+   - Email capture form
+   - Risk reversal ("Free trial, no credit card required")
+
+7. Footer:
+   - Minimal (3-4 links)
+   - Copyright
+   - Social icons
+
+**Tone**: Direct, action-oriented, benefit-focused, urgent
+
+**Conversion Psychology**:
+- Use specific numbers (not "many", use "500+")
+- Create urgency (limited spots, early access)
+- Social proof (testimonials, user count)
+- Risk reversal (free trial, no credit card)
+- Single, clear CTA per section
+
+**Return Format**:
+```json
+{
+  "headline": "Your Bold Headline Here",
+  "subheadline": "Your compelling subheadline",
+  "sections": [
+    {
+      "title": "Problem",
+      "body": "## You're Losing 20+ Hours Every Week\n\n- Manual work takes too long\n- Errors are costly\n- Scaling is impossible"
+    },
+    {
+      "title": "Solution",
+      "body": "## Automate Everything in 5 Minutes\n\nSave 20+ hours per week with AI-powered automation. Trusted by 500+ companies."
+    }
+  ]
+}
+```
+
+**Important**:
+- Every claim must be specific (numbers, percentages, timeframes)
+- If uncertain about a detail, respond with "I don't know" instead of guessing
+- Focus on benefits, not features
+- Include social proof throughout
+- Create genuine urgency (not fake scarcity)

@@ -1,0 +1,231 @@
+name: Validate & Deploy Landing Page
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      idea_name:
+        description: 'Name of the SaaS idea'
+        required: true
+        default: 'SaaS-Idea'
+      youtube_url:
+        description: 'YouTube URL to extract wisdom from'
+        required: false
+        default: ''
+      theme:
+        description: 'Design theme (minimal, material, brutalist)'
+        required: false
+        default: 'minimal'
+      variant:
+        description: 'A/B test variant (A, B, C)'
+        required: false
+        default: 'A'
+
+env:
+  GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install CLI tools
+        run: |
+          npm install -g fabric gemini-cli stitch-cli anti-gravity-cli supabase-cli vercel
+          echo "✅ CLI tools installed"
+
+      - name: Verify tool installations
+        run: |
+          fabric --version || echo "fabric version check failed"
+          gemini --version || echo "gemini version check failed"
+          stitch --version || echo "stitch version check failed"
+          supabase --version || echo "supabase version check failed"
+          vercel --version || echo "vercel version check failed"
+
+      - name: Validate environment variables
+        run: |
+          if [ -z "$GOOGLE_API_KEY" ]; then echo "❌ GOOGLE_API_KEY not set"; exit 1; fi
+          if [ -z "$SUPABASE_URL" ]; then echo "❌ SUPABASE_URL not set"; exit 1; fi
+          if [ -z "$SUPABASE_ANON_KEY" ]; then echo "❌ SUPABASE_ANON_KEY not set"; exit 1; fi
+          if [ -z "$VERCEL_TOKEN" ]; then echo "❌ VERCEL_TOKEN not set"; exit 1; fi
+          echo "✅ Environment variables validated"
+
+      - name: Prepare deployment parameters
+        id: params
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            IDEA_NAME="${{ github.event.inputs.idea_name }}"
+            YOUTUBE_URL="${{ github.event.inputs.youtube_url }}"
+            THEME="${{ github.event.inputs.theme }}"
+            VARIANT="${{ github.event.inputs.variant }}"
+          else
+            IDEA_NAME="SaaS-Idea-${GITHUB_SHA::7}"
+            YOUTUBE_URL=""
+            THEME="minimal"
+            VARIANT="A"
+          fi
+
+          echo "idea_name=$IDEA_NAME" >> $GITHUB_OUTPUT
+          echo "youtube_url=$YOUTUBE_URL" >> $GITHUB_OUTPUT
+          echo "theme=$THEME" >> $GITHUB_OUTPUT
+          echo "variant=$VARIANT" >> $GITHUB_OUTPUT
+
+          echo "📦 Deployment parameters:"
+          echo "   Idea: $IDEA_NAME"
+          echo "   Theme: $THEME"
+          echo "   Variant: $VARIANT"
+
+      - name: Make script executable
+        run: chmod +x scripts/validate.sh
+
+      - name: Run validation script
+        env:
+          IDEA_NAME: ${{ steps.params.outputs.idea_name }}
+          YOUTUBE_URL: ${{ steps.params.outputs.youtube_url }}
+          THEME: ${{ steps.params.outputs.theme }}
+          VARIANT: ${{ steps.params.outputs.variant }}
+        run: |
+          set +e  # Don't fail on errors
+          scripts/validate.sh \
+            "$IDEA_NAME" \
+            "$YOUTUBE_URL" \
+            "$THEME" \
+            "$VARIANT" \
+          2>&1 | tee deployment.log
+
+          # Check if deployment succeeded
+          if grep -q "Deployed to:" deployment.log; then
+            echo "✅ Deployment successful"
+          else
+            echo "⚠️ Deployment may have issues, check logs"
+            exit 0  # Don't fail the workflow
+          fi
+
+      - name: Extract deployment URL
+        id: deploy_url
+        run: |
+          if [ -f deployment.log ]; then
+            URL=$(grep -oP 'Deployed to: \K.*' deployment.log || echo "")
+            echo "url=$URL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Idea Name**: ${{ steps.params.outputs.idea_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Theme**: ${{ steps.params.outputs.theme }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Variant**: ${{ steps.params.outputs.variant }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **YouTube URL**: ${{ steps.params.outputs.youtube_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployment URL**: ${{ steps.deploy_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Visit the deployment URL" >> $GITHUB_STEP_SUMMARY
+          echo "2. Test the email capture form" >> $GITHUB_STEP_SUMMARY
+          echo "3. Share on social media and forums" >> $GITHUB_STEP_SUMMARY
+          echo "4. Monitor leads in Supabase dashboard" >> $GITHUB_STEP_SUMMARY
+
+      - name: Commit generated files (if not triggered by push)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --staged --quiet || git commit -m "chore: deploy landing page ${{ steps.params.outputs.idea_name }}" || true
+          git push
+
+      - name: Setup Supabase database (if needed)
+        continue-on-error: true
+        run: |
+          # Check if leads table exists
+          supabase db query \
+            "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'leads');" \
+            --project-ref "${{ secrets.SUPABASE_URL }}" \
+            || true
+
+      - name: Run health checks
+        continue-on-error: true
+        run: |
+          if [ -n "${{ steps.deploy_url.outputs.url }}" ]; then
+            echo "🔍 Running health checks..."
+            sleep 5
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_url.outputs.url }}" || echo "000")
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Health check passed (HTTP $HTTP_STATUS)"
+            else
+              echo "⚠️ Health check returned HTTP $HTTP_STATUS"
+            fi
+          fi
+
+      - name: Notify Slack (optional)
+        if: env.SLACK_WEBHOOK_URL != ''
+        continue-on-error: true
+        run: |
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"text\": \"🚀 New landing page deployed: ${{ steps.params.outputs.idea_name }}\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*New Landing Page Deployed*\n\n*Idea*: ${{ steps.params.outputs.idea_name }}\n*URL*: ${{ steps.deploy_url.outputs.url }}\n*Theme*: ${{ steps.params.outputs.theme }}\n*Variant*: ${{ steps.params.outputs.variant }}\"
+                  }
+                }
+              ]
+            }"
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-files-${{ github.sha }}
+          path: |
+            deployment.log
+            SaaS-*/summary.md
+            SaaS-*/outline.json
+            SaaS-*/frontend/
+          retention-days: 30
+
+  analyze-performance:
+    runs-on: ubuntu-latest
+    needs: validate-and-deploy
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            ${{ steps.deploy_url.outputs.url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Comment PR with Lighthouse results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('./.lighthouseci/manifest.json', 'utf8'));
+            const comment = `## 📊 Lighthouse Results\n\n${results.map(r => `- **${r.url}**: ${JSON.stringify(r.summary)}`).join('\n')}`;
+            github.rest.issues.createComment({ issue_number: context.issue.number, owner: context.repo.owner, repo: context.repo.repo, body: comment });

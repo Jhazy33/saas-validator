@@ -1,0 +1,492 @@
+# Project-Specific Instructions for: SaaS Validation System
+
+**Project Path:** /Users/jhazy/AI_Projects/_New Idea Design Flow
+**Created:** January 14, 2025
+**Purpose:** AI-powered landing page generation system for validating SaaS ideas
+
+---
+
+## 🎯 PROJECT OVERVIEW
+
+This project automates the creation of landing pages from video content to validate SaaS ideas in days instead of months.
+
+**Core Philosophy:** Validate, don't build. Let data guide decisions, not opinions.
+
+---
+
+## 🧪 MANDATORY TDD TESTING REQUIREMENTS
+
+### **CRITICAL: After EVERY Code Change, You MUST:**
+
+#### 1. **Write Tests FIRST (TDD)**
+```javascript
+// Example test structure using Playwright
+import { test, expect } from '@playwright/test';
+
+test.describe('Landing Page', () => {
+  test('should load successfully', async ({ page }) => {
+    await page.goto('http://localhost:6000');
+    await expect(page).toHaveTitle(/AI Invoice Validator/);
+  });
+
+  test('should capture email', async ({ page }) => {
+    await page.goto('http://localhost:6000');
+    await page.fill('input[type="email"]', 'test@example.com');
+    await page.click('button[type="submit"]');
+    await expect(page.locator('.success')).toBeVisible();
+  });
+});
+```
+
+#### 2. **Run Automated Tests**
+```bash
+# Playwright
+npx playwright test
+
+# Puppeteer
+npm test
+
+# With screenshots
+npx playwright test -- screenshot-on-failure
+```
+
+#### 3. **Take Screenshots for Verification**
+```javascript
+// After each build
+const screenshot = await page.screenshot({
+  path: 'screenshots/component-name-$(date).png',
+  fullPage: true
+});
+```
+
+#### 4. **Verify Manually**
+- [ ] Page loads without errors
+- [ ] All components render
+- [ ] Email capture works
+- [ ] Forms submit successfully
+- [ ] Responsive on mobile/tablet/desktop
+- [ ] No console errors
+
+#### 5. **Document Test Results**
+```bash
+# Create test report
+echo "Test run: $(date)" >> test-results.md
+echo "Status: PASSED" >> test-results.md
+echo "Screenshots: ./screenshots/" >> test-results.md
+```
+
+**NO EXCEPTIONS:** Every component, every function, every feature MUST be tested before being marked as complete.
+
+---
+
+## 📁 MODULAR CODE STRUCTURE REQUIREMENTS
+
+### **File Organization Principles:**
+
+#### 1. **Component-Based Architecture**
+Each component MUST be in its own file:
+
+```
+project/
+├── components/
+│   ├── Hero/
+│   │   ├── Hero.tsx
+│   │   ├── Hero.test.tsx
+│   │   ├── Hero.css
+│   │   └── README.md
+│   ├── EmailCapture/
+│   │   ├── EmailCapture.tsx
+│   │   ├── EmailCapture.test.tsx
+│   │   └── EmailCapture.css
+│   └── Features/
+│       ├── Features.tsx
+│       ├── Features.test.tsx
+│       └── Features.css
+```
+
+#### 2. **Single Responsibility**
+- Each file does ONE thing well
+- Files under 300 lines preferred
+- If over 500 lines, split into smaller modules
+- Easy to test, easy to maintain
+
+#### 3. **Clear Imports**
+```typescript
+// ✅ GOOD - Clear, modular imports
+import { Hero } from './components/Hero/Hero';
+import { EmailCapture } from './components/EmailCapture/EmailCapture';
+
+// ❌ BAD - Vague imports
+import { Hero, EmailCapture, Features, Footer } from './components';
+```
+
+#### 4. **Silo Changes**
+- Editing Hero component should NOT affect Features
+- Changing email capture should NOT break navigation
+- Each component is independent and isolated
+- Changes are contained, not cascading
+
+#### 5. **Component README**
+Each component folder MUST have a README.md:
+
+```markdown
+# Hero Component
+
+**Purpose:** Main landing page hero with CTA
+
+**Props:**
+- `headline`: string
+- `subheadline`: string
+- `ctaText`: string
+
+**Dependencies:**
+- React
+- CSS Modules
+
+**Test Coverage:** 100%
+
+**Last Updated:** 2025-01-14
+```
+
+---
+
+## 🏗️ PROJECT FOLDER STRUCTURE
+
+```
+saas-validation-system/
+│
+├── 📚 docs/                      # Documentation
+│   ├── SKILL.md                  # Skill overview
+│   ├── QUICKSTART.md             # Getting started
+│   ├── ADVANCED.md               # Advanced usage
+│   ├── TOOLS.md                  # Tool reference
+│   └── SOURCE_MATERIAL.md        # Original source
+│
+├── 🤖 scripts/                   # Automation scripts
+│   ├── validate.sh               # Main pipeline
+│   ├── test-all.sh               # Run all tests
+│   └── screenshot-report.sh      # Generate screenshots
+│
+├── ⚙️ config/                    # Configuration files
+│   ├── .env.example              # Environment template
+│   ├── vercel.json               # Vercel config
+│   └── prompts/                  # AI prompt templates
+│       ├── conversion-focused.txt
+│       └── minimal.txt
+│
+├── 🎨 components/                # React/HTML components
+│   ├── Hero/
+│   │   ├── Hero.tsx
+│   │   ├── Hero.test.tsx
+│   │   ├── Hero.css
+│   │   └── README.md
+│   ├── EmailCapture/
+│   │   ├── EmailCapture.tsx
+│   │   ├── EmailCapture.test.tsx
+│   │   ├── EmailCapture.ts       # Types
+│   │   └── README.md
+│   ├── Features/
+│   │   ├── Features.tsx
+│   │   ├── Features.test.tsx
+│   │   └── README.md
+│   └── SocialProof/
+│       ├── SocialProof.tsx
+│       ├── SocialProof.test.tsx
+│       └── README.md
+│
+├── 🧪 tests/                     # Test suites
+│   ├── setup.ts                  # Test configuration
+│   ├── helpers/                  # Test utilities
+│   │   ├── render.tsx
+│   │   └── mock-data.ts
+│   ├── integration/              # Integration tests
+│   │   ├── landing-page.spec.ts
+│   │   └── email-capture.spec.ts
+│   └── e2e/                      # End-to-end tests
+│       ├── user-flow.spec.ts
+│       └── validation.spec.ts
+│
+├── 🎭 playwright/                # Playwright E2E tests
+│   ├── playwright.config.ts
+│   ├── tests/
+│   │   ├── landing-page.spec.ts
+│   │   └── email-form.spec.ts
+│   └── screenshots/              # Test screenshots
+│       ├── desktop/
+│       ├── mobile/
+│       └── tablet/
+│
+├── 📊 screenshots/               # Manual screenshots
+│   ├── components/               # Component screenshots
+│   ├── pages/                    # Page screenshots
+│   └── test-results/             # Test failure screenshots
+│
+├── 🚀 functions/                 # Backend functions
+│   ├── capture-email/
+│   │   ├── index.ts
+│   │   ├── index.test.ts
+│   │   └── README.md
+│   └── export-leads/
+│       ├── index.ts
+│       ├── index.test.ts
+│       └── README.md
+│
+├── 📦 templates/                 # Generated templates
+│   ├── landing-page/
+│   │   ├── index.html
+│   │   ├── main.css
+│   │   └── main.js
+│   └── backend/
+│       ├── migrations/
+│       └── schema.sql
+│
+├── 📈 examples/                  # Usage examples
+│   ├── youtube-validation/
+│   ├── manual-idea/
+│   ├── ab-testing/
+│   └── batch-processing/
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # CI/CD with tests
+│
+├── .env                          # Environment variables
+├── .claude                       # THIS FILE
+├── package.json                  # Dependencies
+├── tsconfig.json                 # TypeScript config
+├── playwright.config.ts          # Playwright config
+├── jest.config.js                # Jest config
+└── README.md                     # Project README
+```
+
+---
+
+## 🔧 CODE QUALITY STANDARDS
+
+### **Before Marking Any Task Complete:**
+
+1. **Tests Pass**
+   ```bash
+   npm test                    # Unit tests
+   npx playwright test        # E2E tests
+   ```
+
+2. **Screenshots Captured**
+   ```bash
+   ./scripts/screenshot-report.sh
+   ```
+
+3. **No Console Errors**
+   ```javascript
+   // Add error boundary
+   window.addEventListener('error', (e) => {
+     console.error('Error:', e);
+   });
+   ```
+
+4. **Responsive Design Verified**
+   - Mobile: 375px - 768px
+   - Tablet: 768px - 1024px
+   - Desktop: 1024px+
+
+5. **Performance Check**
+   - Lighthouse score > 90
+   - First Contentful Paint < 2s
+   - Time to Interactive < 3s
+
+6. **Accessibility**
+   - ARIA labels present
+   - Keyboard navigation works
+   - Screen reader friendly
+
+7. **Code Review Checklist**
+   - [ ] File under 500 lines (if not, split it)
+   - [ ] Each function does ONE thing
+   - [ ] Clear variable names
+   - [ ] Comments explain WHY, not WHAT
+   - [ ] No hardcoded values (use constants)
+   - [ ] Error handling present
+   - [ ] Types defined (if TypeScript)
+
+---
+
+## 🧪 TESTING FRAMEWORK SETUP
+
+### **Playwright Configuration**
+```typescript
+// playwright.config.ts
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './playwright/tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:6000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+  ],
+});
+```
+
+### **Test Template**
+```typescript
+// Component test template
+import { test, expect } from '@playwright/test';
+
+test.describe('ComponentName', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/component-path');
+  });
+
+  test('should render without errors', async ({ page }) => {
+    await expect(page.locator('.component-class')).toBeVisible();
+  });
+
+  test('should handle user interaction', async ({ page }) => {
+    await page.click('.button');
+    await expect(page.locator('.result')).toHaveText('Success');
+  });
+
+  test('should be responsive', async ({ page }) => {
+    // Mobile
+    await page.setViewportSize({ width: 375, height: 667 });
+    await expect(page.locator('.mobile-menu')).toBeVisible();
+
+    // Desktop
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await expect(page.locator('.desktop-menu')).toBeVisible();
+  });
+});
+```
+
+---
+
+## 📋 DEVELOPMENT WORKFLOW
+
+### **For Each New Feature:**
+
+1. **Create Component Directory**
+   ```bash
+   mkdir -p components/NewFeature/{__tests__,screenshots}
+   ```
+
+2. **Write Test FIRST**
+   ```bash
+   touch components/NewFeature/NewFeature.test.tsx
+   # Write test cases before implementation
+   ```
+
+3. **Implement Component**
+   ```bash
+   touch components/NewFeature/NewFeature.tsx
+   # Write code to pass tests
+   ```
+
+4. **Run Tests**
+   ```bash
+   npm test -- NewFeature
+   ```
+
+5. **Take Screenshots**
+   ```bash
+   npx playwright screenshot components/NewFeature/screenshots/
+   ```
+
+6. **Document**
+   ```bash
+   # Update README.md with usage examples
+   ```
+
+7. **Verify**
+   - [ ] All tests pass
+   - [ ] Screenshots look correct
+   - [ ] No console errors
+   - [ ] Responsive on all devices
+   - [ ] Documentation updated
+
+8. **Mark Complete**
+   Only after ALL above are checked ✅
+
+---
+
+## 🚨 STOP CONDITIONS
+
+**Do NOT mark a task complete if:**
+- ❌ Any test fails
+- ❌ No tests written
+- ❌ No screenshots taken
+- ❌ Console has errors
+- ❌ File is 500+ lines (needs splitting)
+- ❌ Component is tightly coupled (needs decoupling)
+- ❌ No documentation (needs README)
+- ❌ Hardcoded values present (needs constants)
+- ❌ Error handling missing
+
+---
+
+## 📊 METRICS TO TRACK
+
+- **Test Coverage:** > 90%
+- **File Size:** < 500 lines per file
+- **Component Count:** Track components > 500 lines
+- **Test Failures:** Zero tolerance
+- **Screenshot Updates:** After every visual change
+- **Console Errors:** Zero tolerance
+
+---
+
+## 🎯 SUCCESS CRITERIA
+
+**A feature is COMPLETE when:**
+1. ✅ All tests pass (unit + integration + e2e)
+2. ✅ Screenshots captured and verified
+3. ✅ No console errors
+4. ✅ Responsive on all devices
+5. ✅ Accessibility verified
+6. ✅ Performance acceptable (>90 Lighthouse)
+7. ✅ Documented in README
+8. ✅ Code review passed
+9. ✅ File size acceptable (<500 lines)
+10. ✅ Component is modular and independent
+
+**If ANY of these fail, the feature is NOT complete.**
+
+---
+
+## 🔄 CONTINUOUS IMPROVEMENT
+
+### **Weekly Reviews:**
+- Check for files > 500 lines
+- Identify test gaps
+- Update screenshots
+- Refactor tightly coupled code
+- Improve test coverage
+
+### **Monthly Audits:**
+- Performance optimization
+- Accessibility audit
+- Security scan
+- Dependency updates
+- Documentation review
+
+---
+
+**Remember:** Quality over speed. It's better to take 2 hours and do it right than 30 minutes and create technical debt.
+
+**Every line of code must be tested. Every component must be verified. Every change must be documented.**
+
+**NO EXCEPTIONS.**
