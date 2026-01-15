@@ -3,7 +3,7 @@
 > **Validate SaaS ideas in days, not months.** Generate landing pages from any content using AI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Issues](https://img.shields.io/github/issues/your-org/saas-validator)](https://github.com/your-org/saas-validator/issues)
+[![GitHub Issues](https://img.shields.io/github/issues/Jhazy33/saas-validator)](https://github.com/Jhazy33/saas-validator/issues)
 
 ## 🎯 What Is This?
 
@@ -22,10 +22,12 @@
 - GitHub account (for auth)
 - Supabase account (free tier works)
 
+**Detailed Setup Guide:** See [LOCAL-SETUP.md](./LOCAL-SETUP.md) for complete local development instructions.
+
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/your-org/saas-validator.git
+git clone https://github.com/Jhazy33/saas-validator.git
 cd saas-validator
 
 # Copy environment template
@@ -38,14 +40,17 @@ nano .env
 ### 2. Start with Docker
 
 ```bash
-# Build and start all services
-docker-compose up -d
+# Make setup script executable (first time only)
+chmod +x docker-setup.sh
+
+# Start all services
+./docker-setup.sh start
 
 # View logs
-docker-compose logs -f app
+./docker-setup.sh logs
 
 # Stop services
-docker-compose down
+./docker-setup.sh stop
 ```
 
 ### 3. Access the Application
