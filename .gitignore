@@ -29,14 +29,71 @@ yarn-error.log*
 .env.development
 .env.test
 
-# API Keys & Secrets (additional protection)
+# API Keys & Secrets (comprehensive protection)
 *api-key*
 *apikey*
 *api_key*
 *credentials*
 *secrets*
+*secret*
 *.pem
 *.key
+*.key.pem
+
+# Service-specific API key patterns
+supabase-key.json
+supabase-secret*
+stripe-key*
+stripe-secret*
+*stripe-key*
+*stripe-secret*
+google-key*
+google-secret*
+*google-api-key*
+*gemini-key*
+openai-key*
+*openai-api-key*
+resend-key*
+*resend-api-key*
+
+# Common API key patterns (prevent accidental commits)
+*private-key*
+*private_key*
+*secret-key*
+*secret_key*
+*auth-token*
+*auth_token*
+*access-key*
+*access_key*
+*.jwt
+*.token
+
+# Specific service key files
+.firebasekey
+.google-app-credentials.json
+service-account.json
+aws-credentials.json
+kubeconfig
+
+# Environment-specific secrets
+.env.staging
+.env.preview
+.env.*.local
+.env.*.production
+secrets.yml
+secrets.yaml
+
+# Database backups with credentials
+*.sql.gz
+*.dump
+backup/*.sql
+
+# Certificate files (may contain private keys)
+*.crt
+*.cer
+*.der
+*.p12
+*.pfx
 
 # Vercel
 .vercel
