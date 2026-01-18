@@ -16,9 +16,13 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Desktop first:"
+# Check if Docker Compose is available (newer: docker compose, older: docker-compose)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo "❌ Docker Compose is not available. Please install Docker Desktop first:"
     echo "   https://www.docker.com/products/docker-desktop"
     exit 1
 fi
@@ -39,7 +43,7 @@ COMMAND=${1:-"help"}
 case $COMMAND in
     start|up)
         echo "🐳 Starting Docker containers..."
-        docker-compose up -d
+        $DOCKER_COMPOSE up -d
         echo ""
         echo "✅ Containers started!"
         echo ""
@@ -48,35 +52,35 @@ case $COMMAND in
         echo "   Mailhog:        http://localhost:8025"
         echo "   pgAdmin:        http://localhost:5050 (admin@saas-validator.com / admin)"
         echo ""
-        echo "📋 View logs with: docker-compose logs -f app"
+        echo "📋 View logs with: $DOCKER_COMPOSE logs -f app"
         ;;
 
     stop|down)
         echo "🛑 Stopping Docker containers..."
-        docker-compose down
+        $DOCKER_COMPOSE down
         echo "✅ Containers stopped!"
         ;;
 
     restart)
         echo "🔄 Restarting Docker containers..."
-        docker-compose restart
+        $DOCKER_COMPOSE restart
         echo "✅ Containers restarted!"
         ;;
 
     logs)
         echo "📋 Showing logs (press Ctrl+C to exit)..."
-        docker-compose logs -f app
+        $DOCKER_COMPOSE logs -f app
         ;;
 
     build)
         echo "🔨 Building Docker images..."
-        docker-compose build
+        $DOCKER_COMPOSE build
         echo "✅ Build complete!"
         ;;
 
     rebuild)
         echo "🔨 Rebuilding Docker images from scratch..."
-        docker-compose build --no-cache
+        $DOCKER_COMPOSE build --no-cache
         echo "✅ Rebuild complete!"
         ;;
 
@@ -84,7 +88,7 @@ case $COMMAND in
         echo "🧹 Cleaning up Docker containers, volumes, and images..."
         read -p "⚠️  This will delete all data. Are you sure? (yes/no): " CONFIRM
         if [ "$CONFIRM" = "yes" ]; then
-            docker-compose down -v
+            $DOCKER_COMPOSE down -v
             docker system prune -f
             echo "✅ Cleanup complete!"
         else
@@ -95,33 +99,33 @@ case $COMMAND in
     status)
         echo "📊 Docker Container Status:"
         echo ""
-        docker-compose ps
+        $DOCKER_COMPOSE ps
         ;;
 
     shell|sh)
         echo "🐚 Opening shell in app container..."
-        docker-compose exec app sh
+        $DOCKER_COMPOSE exec app sh
         ;;
 
     db)
         echo "🗄️  Opening PostgreSQL shell..."
-        docker-compose exec postgres psql -U postgres -d saas_validator
+        $DOCKER_COMPOSE exec postgres psql -U postgres -d saas_validator
         ;;
 
     redis)
         echo "📦 Opening Redis CLI..."
-        docker-compose exec redis redis-cli
+        $DOCKER_COMPOSE exec redis redis-cli
         ;;
 
     install)
         echo "📦 Installing dependencies..."
-        docker-compose run --rm app npm install
+        $DOCKER_COMPOSE run --rm app npm install
         echo "✅ Dependencies installed!"
         ;;
 
     test)
         echo "🧪 Running tests..."
-        docker-compose run --rm app npm test
+        $DOCKER_COMPOSE run --rm app npm test
         ;;
 
     help|*)

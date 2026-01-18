@@ -1,8 +1,6 @@
 # SaaS Validator - Docker Compose for Local Development
-# Run: docker-compose up -d
+# Run: docker compose up -d
 # Access: http://localhost:3000
-
-version: '3.8'
 
 services:
   # Main Application
