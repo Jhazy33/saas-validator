@@ -25,6 +25,18 @@ yarn-error.log*
 # Local env files
 .env*.local
 .env
+.env.production
+.env.development
+.env.test
+
+# API Keys & Secrets (additional protection)
+*api-key*
+*apikey*
+*api_key*
+*credentials*
+*secrets*
+*.pem
+*.key
 
 # Vercel
 .vercel
